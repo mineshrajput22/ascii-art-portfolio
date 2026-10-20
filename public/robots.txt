@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://minesh.site/sitemap.xml
