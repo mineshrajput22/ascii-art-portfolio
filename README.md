@@ -53,3 +53,9 @@ Changes to the engine include explicit light/dark palettes, muted accents, remov
 - Build and deploy `dist/` using the existing `minesh.site` hosting setup after preview approval.
 
 This checkout does not alter the existing site or its deployment.
+
+## Recent changes
+- Increased shark density (desktop 5, mobile 4) with varied sizes.
+- Finer cell resolution for sharper shark shapes.
+- Aligned ocean palette/lighting to upstream (black bg, cyan wake only).
+- Responsive ocean background re-initializes on viewport change.
