@@ -19,6 +19,7 @@ export class OceanEngine {
   private intersectionObserver: IntersectionObserver;
   private disposed = false;
   private paused = false;
+  private size = { width: 0, height: 0, dpr: 0 };
 
   constructor(private canvas: HTMLCanvasElement, sharks?: SharkSpec[], fishCount?: number) {
     this.world = new World(sharks, fishCount);
@@ -77,9 +78,14 @@ export class OceanEngine {
     const rect = this.canvas.getBoundingClientRect();
     if (rect.width < 1 || rect.height < 1) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    if (rect.width === this.size.width && rect.height === this.size.height && dpr === this.size.dpr) return;
+    this.size = { width: rect.width, height: rect.height, dpr };
     this.renderer.resize(rect.width, rect.height, dpr);
     this.world.resize(rect.width, rect.height, this.renderer.cellWidth, this.renderer.cellHeight);
     if (this.paused) this.drawStill();
+    // Assigning canvas dimensions clears its bitmap. ResizeObserver runs before
+    // paint, so restore the scene now instead of exposing a blank frame.
+    else this.renderer.render(this.world, 0);
   }
 
   private schedule() {

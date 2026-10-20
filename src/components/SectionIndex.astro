@@ -1,0 +1,67 @@
+---
+const sections = [
+  ['top', 'Introduction'],
+  ['work', 'Selected work'],
+  ['experience', 'Experience'],
+  ['skills', 'Toolkit'],
+  ['about', 'About me'],
+  ['photography', 'Photography'],
+  ['contact', 'Contact'],
+];
+---
+<nav class="section-index" aria-label="On this page">
+  <ol>{sections.map(([id, label], index) =>
+    <li><a href={`#${id}`} aria-label={label} aria-current={index === 0 ? 'location' : undefined}>
+      <span class="section-index-label" aria-hidden="true">{label}</span>
+      <span class="section-index-dash" aria-hidden="true"></span>
+    </a></li>
+  )}</ol>
+</nav>
+<script>
+  const index = document.querySelector<HTMLElement>('.section-index');
+  if (index) {
+    const desktop = matchMedia('(min-width: 1100px) and (hover: hover) and (pointer: fine)');
+    const links = Array.from(index.querySelectorAll<HTMLAnchorElement>('a'));
+    const sections = links.map(link => document.getElementById(link.hash.slice(1)));
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      if (!desktop.matches) return;
+      let active = 0;
+      const readingLine = Math.max(130, window.innerHeight * .25);
+      sections.forEach((section, i) => {
+        if (section && section.getBoundingClientRect().top <= readingLine) active = i;
+      });
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) active = links.length - 1;
+      links.forEach((link, i) => {
+        if (i === active) link.setAttribute('aria-current', 'location');
+        else link.removeAttribute('aria-current');
+      });
+    };
+    const schedule = () => { if (!frame && desktop.matches) frame = requestAnimationFrame(update); };
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule, { passive: true });
+    window.addEventListener('pageshow', schedule);
+    desktop.addEventListener('change', schedule);
+    window.addEventListener('pagehide', () => { cancelAnimationFrame(frame); frame = 0; });
+    update();
+  }
+</script>
+
+<style>
+  .section-index{display:none}
+  @media(min-width:1100px) and (hover:hover) and (pointer:fine){
+    .section-index{display:block;position:fixed;right:12px;top:50%;transform:translateY(-50%);z-index:9;width:46px;padding:8px 8px;border:1px solid transparent;border-radius:8px;transition:width .25s ease,background-color .25s ease,border-color .25s ease}
+    .section-index:is(:hover,:focus-within){width:148px;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+    ol{list-style:none;padding:0;margin:0}
+    a{position:relative;display:flex;align-items:center;justify-content:flex-end;height:32px;padding-inline:6px;border-radius:3px;color:var(--muted)}
+    a:focus-visible{outline-offset:0}
+    .section-index-label{position:absolute;right:36px;white-space:nowrap;font-size:11px;opacity:0;transform:translateX(4px);pointer-events:none;transition:opacity .2s ease,transform .25s ease}
+    .section-index:is(:hover,:focus-within) .section-index-label{opacity:1;transform:translateX(0)}
+    .section-index-dash{display:block;width:14px;height:2px;border-radius:2px;background:var(--muted);opacity:.45;transition:width .2s ease,opacity .2s ease,background-color .2s ease}
+    a[aria-current=location]{color:var(--accent)}
+    a[aria-current=location] .section-index-dash{width:22px;background:var(--accent);opacity:1}
+    a:is(:hover,:focus-visible) .section-index-dash{background:var(--accent);opacity:1}
+    a:hover{color:var(--ink)}
+  }
+</style>

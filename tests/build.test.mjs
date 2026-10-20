@@ -59,3 +59,98 @@ test('gallery has descriptive images and native dialog controls', () => {
   assert.ok(!home.includes('id="motion-toggle"'));
   assert.ok(home.includes('id="theme-toggle"'));
 });
+
+function metadata(html, key, value) {
+  const tag = [...html.matchAll(/<meta\b[^>]*>/g)].map(([tag]) => tag)
+    .find(tag => tag.includes(`${key}="${value}"`));
+  return tag?.match(/content="([^"]*)"/)?.[1];
+}
+
+function canonical(html) {
+  return html.match(/<link\b[^>]*rel="canonical"[^>]*href="([^"]+)"/)?.[1];
+}
+
+function schema(html) {
+  const scripts = [...html.matchAll(/<script\b[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)];
+  assert.equal(scripts.length, 1, 'Exactly one structured-data graph per page');
+  return JSON.parse(scripts[0][1]);
+}
+
+test('pages have unique server-rendered SEO metadata and canonical URLs', () => {
+  const titles = new Set(), descriptions = new Set();
+  for (const [html, url] of [[home, 'https://minesh.site/'], [gallery, 'https://minesh.site/photography/']]) {
+    const title = html.match(/<title>([^<]+)<\/title>/)?.[1];
+    assert.ok(title?.includes('Minesh Rajput'));
+    const description = metadata(html, 'name', 'description');
+    assert.ok(description && description.length > 70);
+    titles.add(title); descriptions.add(description);
+    assert.equal(canonical(html), url);
+    assert.equal((html.match(/rel="canonical"/g) || []).length, 1);
+    assert.equal((html.match(/<h1(?:\s|>)/g) || []).length, 1);
+    assert.equal(metadata(html, 'name', 'author'), 'Minesh Rajput');
+    assert.equal(metadata(html, 'name', 'robots'), 'index, follow, max-image-preview:large');
+    assert.ok(!html.includes('http://localhost') && !html.includes('http://127.0.0.1'));
+  }
+  assert.equal(titles.size, 2);
+  assert.equal(descriptions.size, 2);
+  assert.ok(metadata(home, 'name', 'description').includes('Kolhapur, India'));
+});
+
+test('social cards have matching titles, descriptions, and real image dimensions', async () => {
+  const png = await readFile(path.join(root, 'social-card.png'));
+  for (const html of [home, gallery]) {
+    assert.equal(metadata(html, 'property', 'og:url'), canonical(html));
+    assert.equal(metadata(html, 'property', 'og:description'), metadata(html, 'name', 'description'));
+    assert.equal(metadata(html, 'name', 'twitter:title'), metadata(html, 'property', 'og:title'));
+    assert.equal(metadata(html, 'name', 'twitter:description'), metadata(html, 'name', 'description'));
+    assert.equal(metadata(html, 'name', 'twitter:card'), 'summary_large_image');
+    assert.equal(metadata(html, 'property', 'og:image'), 'https://minesh.site/social-card.png');
+    assert.equal(metadata(html, 'name', 'twitter:image'), metadata(html, 'property', 'og:image'));
+    assert.equal(Number(metadata(html, 'property', 'og:image:width')), png.readUInt32BE(16));
+    assert.equal(Number(metadata(html, 'property', 'og:image:height')), png.readUInt32BE(20));
+    assert.ok(metadata(html, 'property', 'og:image:alt'));
+    assert.equal(metadata(html, 'name', 'twitter:image:alt'), metadata(html, 'property', 'og:image:alt'));
+  }
+});
+
+test('structured data represents the visible person, website, and actual photo collection', async () => {
+  for (const html of [home, gallery]) {
+    const data = schema(html);
+    assert.equal(data['@context'], 'https://schema.org');
+    const person = data['@graph'].find(item => item['@type'] === 'Person');
+    assert.equal(person.name, 'Minesh Rajput');
+    assert.equal(person.address.addressLocality, 'Kolhapur');
+    assert.ok(person.sameAs.includes('https://github.com/mineshrajput22'));
+    const website = data['@graph'].find(item => item['@type'] === 'WebSite');
+    assert.equal(website.url, 'https://minesh.site/');
+    assert.equal(website.publisher['@id'], person['@id']);
+  }
+  const homeData = schema(home)['@graph'];
+  assert.equal(homeData.find(item => item['@type'] === 'WebPage').mainEntity['@id'], 'https://minesh.site/#person');
+  const graph = schema(gallery)['@graph'];
+  const collection = graph.find(item => item['@type'] === 'CollectionPage');
+  const count = [...gallery.matchAll(/data-photo-index="\d+"/g)].length;
+  assert.equal(collection.mainEntity.numberOfItems, count);
+  assert.equal(collection.mainEntity.itemListElement.length, count);
+  for (const [index, entry] of collection.mainEntity.itemListElement.entries()) {
+    assert.equal(entry.position, index + 1);
+    const image = entry.item;
+    assert.equal(image['@type'], 'ImageObject');
+    assert.ok(image.name && image.width > 0 && image.height > 0);
+    const url = new URL(image.contentUrl);
+    assert.equal(url.origin, 'https://minesh.site');
+    await access(path.join(root, url.pathname));
+    assert.ok(gallery.includes(`src="${url.pathname}"`));
+  }
+  const breadcrumbs = graph.find(item => item['@type'] === 'BreadcrumbList').itemListElement;
+  assert.deepEqual(breadcrumbs.map(item => item.item), ['https://minesh.site/', 'https://minesh.site/photography/']);
+});
+
+test('robots discovers a sitemap containing exactly the canonical HTML pages', async () => {
+  const robots = await readFile(path.join(root, 'robots.txt'), 'utf8');
+  const sitemap = await readFile(path.join(root, 'sitemap.xml'), 'utf8');
+  assert.match(robots, /User-agent: \*\s+Allow: \/\s+Sitemap: https:\/\/minesh\.site\/sitemap\.xml/);
+  const locations = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map(([, url]) => url);
+  assert.deepEqual(locations.sort(), [canonical(home), canonical(gallery)].sort());
+  assert.ok(!sitemap.includes('<lastmod>'), 'Do not fabricate update dates');
+});

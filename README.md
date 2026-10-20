@@ -29,12 +29,26 @@ The deployable static site is generated into `dist/`. No server, database, crede
 - `src/pages/index.astro`: approved introduction, experience and other homepage copy.
 - `public/Minesh-Rajput-Resume.pdf`: supplied résumé download.
 - `src/styles/global.css`: responsive layout and both theme palettes.
-- `src/scripts/site.ts`: theme preference, copy email and accessible photo viewer.
+- `src/scripts/site.ts`: theme preference, copy email, and initialization of motion, gallery, audio, and navigation lifecycle modules.
 - `src/lib/ocean`: adapted ASCII shark simulation.
+- `src/lib/seo.ts`: page metadata and structured data; production URLs use `site` in `astro.config.mjs`.
+- `src/pages/robots.txt.ts` and `src/pages/sitemap.xml.ts`: generated crawl files for the production domain.
 
 The site defaults to light mode until the visitor chooses a theme. The selection persists locally. At the owner�s explicit request, the ocean animates by default even when the system requests reduced motion; there is no play/pause UI. Hidden tabs and offscreen canvases stop rendering. Photography supports keyboard arrows and Escape, with focus returned to the original image.
 
-Project images for NoteStack.AI and Chequers9 are supplied screenshots. DropDox and Architectural Walkthrough currently use clearly labelled illustrations, not claimed screenshots. Replace these with verified captures when available.
+All four project previews use fresh captures of their public live pages, normalized to 1440 × 810 (16:9). Screenshot cards follow the image dimensions on desktop and mobile, without letterboxing or hover zoom. The fallback illustrations remain available if a future project has no screenshot.
+
+Music starts at 8% volume, attempts playback immediately, and retries after interaction if the browser blocks autoplay. It has no visible controls, as requested. Hidden pages pause playback. Cached history returns resume the same ocean; uncached Back/Forward navigation also restores open project disclosures through session storage.
+
+See `research/usability-validation.md` for the polish pass, automated/browser checks, and remaining device checks.
+
+## SEO and repository cleanup
+
+Both pages render their own titles, descriptions, canonical URLs, Open Graph/Twitter cards, and JSON-LD directly into the static HTML. The homepage identifies Minesh as a developer in Kolhapur; the photography page describes the image collection and includes breadcrumbs. Sitemap and robots URLs come from the same configured production domain. No search-account credentials or verification tags are invented.
+
+`public/social-card.svg` is the editable source for the published `social-card.png`; both are intentionally retained. Local font files and their OFL license remain, without requiring the unused font npm package. Old project image variants, the unused ocean export/grid helper, outdated implementation notes, and temporary capture/video tooling have been removed. Build output, installed dependencies, tests, source, the résumé, photographs, music, and attribution notices remain.
+
+See `research/seo-validation.md` for checks and post-deployment steps.
 
 ## Source attribution and release dependency
 
@@ -59,3 +73,8 @@ This checkout does not alter the existing site or its deployment.
 - Finer cell resolution for sharper shark shapes.
 - Aligned ocean palette/lighting to upstream (black bg, cyan wake only).
 - Responsive ocean background re-initializes on viewport change.
+
+## Continuing with another AI
+
+Read AI_HANDOFF.md first. It records approved styling, implementation, checks, remaining work, and portable export instructions. Keep it updated as work continues.
+

@@ -247,25 +247,6 @@ function inTriangle(
   return !(neg && pos);
 }
 
-/** Visible dark-grey cell grid, snapped to device pixels. Shared with the sidebar backdrop. */
-export function paintGrid(g: CanvasRenderingContext2D, W: number, H: number, cw: number, ch: number, dpr: number) {
-  g.setTransform(1, 0, 0, 1, 0, 0);
-  g.strokeStyle = "rgba(255,255,255,0.055)";
-  g.lineWidth = 1;
-  g.beginPath();
-  for (let c = 0; c <= Math.ceil(W / cw); c++) {
-    const x = Math.round(c * cw * dpr) + 0.5;
-    g.moveTo(x, 0);
-    g.lineTo(x, H * dpr);
-  }
-  for (let r = 0; r <= Math.ceil(H / ch); r++) {
-    const y = Math.round(r * ch * dpr) + 0.5;
-    g.moveTo(0, y);
-    g.lineTo(W * dpr, y);
-  }
-  g.stroke();
-}
-
 export class AsciiRenderer {
   private theme: "light" | "dark" = "dark";
   private ctx: CanvasRenderingContext2D;
