@@ -18,7 +18,7 @@ function load(name, context) {
   }).outputText, scope);
   return scope.exports;
 }
-const flush = async () => { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); };
+
 
 test('anchor clearance follows real header size on initial load, resize, and cache restore', () => {
   let height = 74, clearance, resize;
@@ -84,35 +84,6 @@ test('uncached Back restores disclosures but a fresh visit does not', () => {
   load('lifecycle', context).rememberDisclosures();
   assert.equal(details[0].open, true);
   assert.equal(details[1].open, false);
-});
-
-test('blocked autoplay retries synchronously on gestures without overlapping play requests', async () => {
-  const document = events({ hidden: false }), window = events();
-  let calls = 0, resolve;
-  const audio = { paused: true, currentTime: 42, pause() { this.paused = true; },
-    play() { calls++; return calls === 1 ? Promise.reject(new Error('NotAllowedError')) : new Promise(r => { resolve = () => { this.paused = false; r(); }; }); } };
-  load('audio', { document, window }).initMusic(audio);
-  assert.equal(calls, 1); assert.equal(audio.volume, .08);
-  await flush();
-  document.emit('touchend'); assert.equal(calls, 2);
-  document.emit('click'); document.emit('keydown'); assert.equal(calls, 2);
-  resolve(); await flush();
-  document.emit('click'); assert.equal(calls, 2);
-  document.hidden = true; document.emit('visibilitychange'); assert.equal(audio.paused, true);
-  document.hidden = false; document.emit('visibilitychange'); assert.equal(calls, 3);
-  resolve(); await flush();
-  assert.equal(audio.currentTime, 42);
-  window.emit('pagehide', { persisted: true }); window.emit('pageshow', { persisted: true });
-  assert.equal(calls, 4); resolve(); await flush();
-});
-
-test('music paused externally does not resume just because the tab becomes visible', async () => {
-  const document = events({ hidden: false }), window = events(); let calls = 0;
-  const audio = { paused: true, pause() { this.paused = true; }, play() { calls++; this.paused = false; return Promise.resolve(); } };
-  load('audio', { document, window }).initMusic(audio); await flush();
-  audio.pause(); document.hidden = true; document.emit('visibilitychange');
-  document.hidden = false; document.emit('visibilitychange');
-  assert.equal(calls, 1);
 });
 
 test('gallery handles stale success/error, retry, reserved dimensions, and closing focus', () => {

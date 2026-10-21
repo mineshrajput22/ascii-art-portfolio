@@ -1,4 +1,4 @@
-import { initMusic } from './audio';
+
 import { bindOceanLifecycle, rememberDisclosures } from './lifecycle';
 import { initGallery } from './gallery';
 import { OceanEngine } from '../lib/ocean/engine';
@@ -36,8 +36,8 @@ if (canvas) {
 }
 updateTheme();
 bindOceanLifecycle(() => engine);
-const music = document.querySelector<HTMLAudioElement>('#bg-music');
-if (music) initMusic(music);
+
+
 initGallery();
 document.querySelector<HTMLButtonElement>('.copy-email')?.addEventListener('click', async event => {
   const button = event.currentTarget as HTMLButtonElement;
