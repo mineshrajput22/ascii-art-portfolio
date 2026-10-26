@@ -26,12 +26,15 @@ export function pageStructuredData(site: URL, canonical: URL, page: PageKind, ti
   const websiteId = new URL('#website', site).href;
   const person = {
     '@type': 'Person', '@id': personId,
-    name: 'Minesh Rajput', url: site.href, jobTitle: 'Full-stack Developer',
+    name: 'Minesh Rajput', alternateName: 'mineshrajput22',
+    url: site.href, jobTitle: 'Full-stack Developer',
+    description: pageMetadata.home.description,
+    mainEntityOfPage: { '@id': `${new URL('/', site).href}#webpage` },
     address: { '@type': 'PostalAddress', addressLocality: 'Kolhapur', addressCountry: 'IN' },
     sameAs: [...profiles.filter(profile => profile.href.startsWith('https://')).map(profile => profile.href), 'https://www.instagram.com/kon.hu.main_09/'],
   };
   const webpage = {
-    '@type': page === 'photography' ? 'CollectionPage' : 'WebPage',
+    '@type': page === 'photography' ? 'CollectionPage' : ['WebPage', 'ProfilePage'],
     '@id': `${canonical.href}#webpage`, url: canonical.href, name: title, description,
     inLanguage: 'en-IN', isPartOf: { '@id': websiteId }, author: { '@id': personId },
     about: { '@id': personId },

@@ -11,6 +11,8 @@ const site = new URL('/', canonical);
 const socialImage = new URL('/social-card.png', site);
 const socialAlt = 'Minesh Rajput — a frontend foundation, a full-stack perspective.';
 const structuredData = JSON.stringify(pageStructuredData(site, canonical, page, title, description)).replace(/</g, '\\u003c');
+const googleVerification = import.meta.env.GOOGLE_SITE_VERIFICATION?.trim();
+const bingVerification = import.meta.env.BING_SITE_VERIFICATION?.trim();
 ---
 <!doctype html>
 <html lang="en" data-theme="light">
@@ -20,6 +22,8 @@ const structuredData = JSON.stringify(pageStructuredData(site, canonical, page, 
     <link rel="preload" href="/fonts/geist-latin.woff2" as="font" type="font/woff2" crossorigin />
     <meta name="description" content={description} />
     <meta name="author" content="Minesh Rajput" />
+    {googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+    {bingVerification && <meta name="msvalidate.01" content={bingVerification} />}
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#f7f7f2" />
     <link rel="canonical" href={canonical} />

@@ -1,5 +1,9 @@
 # Portfolio AI handoff
 
+## SEO follow-up — 26 October 2026
+
+Homepage identity graph now types the page as both WebPage and ProfilePage, with reciprocal Person linkage, verified existing username and profile description. Optional build-time Google/Bing ownership tags use the public tokens documented in `.env.example`; no verification or submission is claimed. See `research/name-search-launch.md` for launch/indexing steps and the unresolved live-domain reachability observation. Preserve the approved hero and existing appearance. This follow-up does not deploy the site.
+
 Updated: 20 October 2026. Read this before making changes. This records the owner's decisions and current implementation; inspect source before editing. Continue from the current files rather than recreating the site.
 
 ## Project and commands

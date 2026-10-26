@@ -126,7 +126,12 @@ test('structured data represents the visible person, website, and actual photo c
     assert.equal(website.publisher['@id'], person['@id']);
   }
   const homeData = schema(home)['@graph'];
-  assert.equal(homeData.find(item => item['@type'] === 'WebPage').mainEntity['@id'], 'https://minesh.site/#person');
+  const profile = homeData.find(item => Array.isArray(item['@type']) && item['@type'].includes('ProfilePage'));
+  assert.ok(profile['@type'].includes('WebPage'));
+  assert.equal(profile.mainEntity['@id'], 'https://minesh.site/#person');
+  const person = homeData.find(item => item['@type'] === 'Person');
+  assert.equal(person.mainEntityOfPage['@id'], profile['@id']);
+  assert.equal(person.alternateName, 'mineshrajput22');
   const graph = schema(gallery)['@graph'];
   const collection = graph.find(item => item['@type'] === 'CollectionPage');
   const count = [...gallery.matchAll(/data-photo-index="\d+"/g)].length;
